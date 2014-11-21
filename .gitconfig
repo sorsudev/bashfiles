@@ -1,0 +1,9 @@
+[user]
+	name = Oscar Hugo Cardenas Lopez
+	email = oscar@masfusion.com
+[mergetool "fugitive"]
+	cmd = vim -f -c \"Gdiff\" \"$MERGED\"
+[merge]
+	tool = fugitive
+[core]
+	editor = /usr/bin/vim
