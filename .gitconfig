@@ -7,3 +7,7 @@
   tool = fugitive
 [core]
   editor = /usr/bin/vim
+[diff]
+    external = git_diff_wrapper
+[pager]
+    diff =
