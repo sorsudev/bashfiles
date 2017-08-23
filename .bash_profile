@@ -1,6 +1,5 @@
-# RVM install
-
-export PATH=/usr/local/bin:./bin/:$PATH
+directory=.bash_files
+export PATH=/usr/local/bin:$HOME/$directory/bin/:$PATH
 
 # History navigation
 
@@ -13,18 +12,22 @@ bind '"\e[5C":forward-word'
 
 # Activate colors
 
-source $HOME/bash_profile/.git-prompt.sh
+source $HOME/$directory/.git-prompt.sh
 
 export PS1="\[$(tput bold)\]\[\033[38;5;33m\]\u\[$(tput sgr0)\]\[$(tput sgr0)\]\[\033[38;5;15m\]@\[$(tput sgr0)\]\[\033[38;5;99m\]\t\[$(tput sgr0)\]\[\033[38;5;127m\]--->\[$(tput bold)\]\[$(tput sgr0)\]\[\033[38;5;14m\]\w\[$(tput sgr0)\]\[\033[38;5;91m\]\n\$(__git_ps1)\$(parse_git_dirty)\[\033[m\] "
 
 # git autocomple functions
 
-source $HOME/bash_profile/.git-completition.bash
+source $HOME/$directory/.git-completition.bash
 
 
 # git alias
 
-source $HOME/bash_profile/.git-alias.sh
+source $HOME/$directory/.git-alias.sh
+
+# node config
+
+source $HOME/$directory/.npmrc
 
 function parse_git_dirty {
   git diff --quiet HEAD &>/dev/null
