@@ -1,4 +1,4 @@
-directory=.bash_files
+directory=.bashfiles
 export PATH=/usr/local/bin:$HOME/$directory/bin/:$PATH
 
 # History navigation
