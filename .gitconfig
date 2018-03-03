@@ -1,13 +1,14 @@
 [user]
   name = Oscar Hugo Cardenas Lopez
   email = oscardev@cacyberlo.com.mx
-[mergetool "fugitive"]
-  cmd = vim -f -c \"Gdiff\" \"$MERGED\"
-[merge]
-  tool = fugitive
 [core]
   editor = /usr/bin/vim
 [diff]
-    external = git_diff_wrapper
+  external = git_diff_wrapper
+[merge]
+  tool = vimdiff
+  conflictstyle = diff3
+[mergetool]
+  prompt = false
 [pager]
-    diff =
+  diff =
