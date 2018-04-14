@@ -1,3 +1,40 @@
-gtpd() {
+gtpj() {
     cd $(ls -d $HOME/projects/* | grep "$1")
+    if [ -d app ]; then
+        cd app
+    fi
+}
+
+lpj(){
+    ls -al $HOME/projects
+}
+
+cpj(){
+    if [ -z "$1" ]
+    then
+        echo "Se require nombre de projecto"
+    else
+        cd $HOME/projects
+        mkdir "$1"
+    fi
+}
+
+sapp(){
+    if [ -z "$1" ]
+    then
+        echo "Se require nombre de projecto"
+    else
+        gtpj "$1"
+        if [ -f app.js ]; then
+            nodemon app.js
+        fi
+    fi
+}
+
+ecmd() {
+    vim $HOME/.bashfiles/personaCommands
+}
+
+reload(){
+    source $HOME/.bashrc
 }
