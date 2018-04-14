@@ -1,0 +1,21 @@
+#!/bin/bash
+bateryPercent=$(acpi -i | grep [0-9][0-9]% | awk 'NR==1{print $4}' | cut -c 1-2)
+bateryStatus=$(acpi -i | awk 'NR==1{print $3}' | wc -m)
+
+getIcon(){
+    if [ $bateryPercent -gt 75 ]; then
+        echo ☕
+    elif [ $bateryPercent -lt 75 ] && [ $bateryPercent -gt 50 ]; then
+        echo 😃
+    elif [ $bateryPercent -lt 50 ] && [ $bateryPercent -gt 20 ]; then
+        echo 🤒
+    else
+        echo 💀
+    fi
+}
+
+if [ $bateryStatus -eq 10 ]; then
+    echo $bateryPercent% 🔌 $(getIcon)
+else
+    echo $bateryPercent% 🔋 $(getIcon)
+fi
