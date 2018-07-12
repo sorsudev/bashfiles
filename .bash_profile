@@ -28,6 +28,8 @@ source $HOME/$directory/.git-alias.sh
 # node config
 
 source $HOME/$directory/.npmrc
+# Wakatime
+source $HOME/$directory/bash-wakatime/bash-wakatime.sh
 
 function parse_git_dirty {
   git diff --quiet HEAD &>/dev/null
