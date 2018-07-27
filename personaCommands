@@ -1,8 +1,5 @@
 gtpj() {
     cd $(ls -d $HOME/projects/* | grep "$1")
-    if [ -d app ]; then
-        cd app
-    fi
 }
 
 lpj(){
@@ -37,4 +34,8 @@ ecmd() {
 
 reload(){
     source $HOME/.bashrc
+}
+
+runApp(){
+    NODE_ENV='development' $(pwd)/node_modules/electron/dist/electron .
 }

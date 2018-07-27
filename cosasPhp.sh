@@ -1,6 +1,6 @@
 sudo add-apt-repository ppa:ondrej/php
 sudo apt-get update
-sudo apt-get install mysql-workbench php5.6 php5.6-mbstring php5.6-mcrypt php5.6-mysql php5.6-xml php5.6-intl php5.6-intl php5.6-mbstring  php5.6-cli php5.6-gd php5.6-curl php5.6-sqlite3 php5.6-soap
+sudo apt-get install mysql-workbench php5.6 php5.6-mbstring php5.6-mcrypt php5.6-mysql php5.6-xml php5.6-intl php5.6-intl php5.6-mbstring  php5.6-cli php5.6-gd php5.6-curl php5.6-sqlite3 php5.6-soap php5.6-zip
 apt install libapache2-mod-php5.6
 a2dismod php7.0
 a2enmod php5.6
