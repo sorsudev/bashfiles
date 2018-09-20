@@ -43,3 +43,4 @@ function parse_git_dirty {
 
 force_color_prompt=yes
 source $HOME/$directory/personaCommands
+eval "$(rbenv init -)"

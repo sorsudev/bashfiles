@@ -33,9 +33,21 @@ ecmd() {
 }
 
 reload(){
-    source $HOME/.bashrc
+    source $HOME/.bash_profile
 }
 
 runApp(){
     NODE_ENV='development' $(pwd)/node_modules/electron/dist/electron .
+}
+
+clearDocker(){
+  bash $HOME/.bashfiles/cleanDocker.sh
+}
+
+compileImage(){
+  docker build --rm --tag $(basename `pwd`) .
+}
+
+runDockerApp(){
+  docker run -it -p 8080:8080 $(basename `pwd`)
 }
