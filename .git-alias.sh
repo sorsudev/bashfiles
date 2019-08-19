@@ -10,5 +10,6 @@ alias gmt='git mergetool'
 alias bdf='git diff'
 alias glg='git log --date-order --all --graph --name-status --format="%C(green)%h%Creset %C(yellow)%an%Creset %C(blue bold)%ar%Creset %C(red bold)%d%Creset%s"'
 alias gg='git grep'
+alias grm='git branch --merged | egrep -v "(^\*|master|dev)" | xargs git branch -d'
 
 __git_complete gco _git_checkout

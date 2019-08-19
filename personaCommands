@@ -49,5 +49,26 @@ compileImage(){
 }
 
 runDockerApp(){
-  docker run -it -p 8080:8080 $(basename `pwd`)
+  docker run -it -p 8081:80 $(basename `pwd`)
+}
+
+deployProduction(){
+  gcloud app deploy app_production.yaml
+}
+
+initRailsProject(){
+  export RAILSPATH=$PWD
+  cd $HOME/projects/dockerImages/rails
+  sed -i '.original' -e "s~RAILSPATH~${RAILSPATH}~g" docker-compose.yml
+  rm -rf docker-compose.yml.original
+  docker-compose build
+  cd $RAILSPATH
+}
+
+runRailsProject(){
+  APPNAME=$(basename `pwd`)
+  cd $HOME/projects/dockerImages/rails
+  sed -i '.original' -e "s~APPNAME~${APPNAME}~g" docker-compose.yml
+  rm -rf docker-compose.yml.original
+  docker-compose up
 }
