@@ -72,3 +72,13 @@ runRailsProject(){
   rm -rf docker-compose.yml.original
   docker-compose up
 }
+
+runRailsC(){
+  APPNAME=$(basename `pwd`)
+  if [ -z "$1" ]
+  then
+    docker exec -it $APPNAME bin/rails c
+  else
+    docker exec -it $APPNAME bin/rails c "$1"
+  fi
+}
