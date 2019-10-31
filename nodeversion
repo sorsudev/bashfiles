@@ -1,3 +1,0 @@
-#!/bin/bash 
-version=$(node -v | cut -c 2-10)
-echo $version

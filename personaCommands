@@ -48,6 +48,12 @@ compileImage(){
   docker build --rm --tag $(basename `pwd`) .
 }
 
+compileGcloudImage(){
+  tagName=gcr.io/${PROJECTID}/$(basename `pwd`)
+  docker tag $(basename `pwd`) $tagName
+  docker push $tagName
+}
+
 runDockerApp(){
   docker run -it -p 8081:80 $(basename `pwd`)
 }
