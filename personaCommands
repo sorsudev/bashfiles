@@ -64,20 +64,24 @@ deployProduction(){
 
 initRailsProject(){
   RAILSPATH=$PWD
-  cd $HOME/projects/dockerImages/rails
-  sed -i '.original' -e "s~RAILSPATH~${RAILSPATH}~g" docker-compose.yml
-  rm -rf docker-compose.yml.original
-  docker-compose build
+  APPNAME=$(basename $RAILSPATH)
+  COMPOSEFILE=${APPNAME}docker-compose.yml
+  cd $HOME/.bashfiles/dockerImages/rails
+  cp docker-compose.example.yml $COMPOSEFILE
+  sed -i '.original' -e "s~RAILSPATH~${RAILSPATH}~g" $COMPOSEFILE
+  rm -rf ${COMPOSEFILE}.original
+  docker-compose -f $COMPOSEFILE build
   cd $RAILSPATH
 }
 
 runRailsProject(){
   RAILSPATH=$PWD
   APPNAME=$(basename $RAILSPATH)
-  cd $HOME/projects/dockerImages/rails
-  sed -i '.original' -e "s~APPNAME~${APPNAME}~g" docker-compose.yml
-  rm -rf docker-compose.yml.original
-  docker-compose up -d
+  COMPOSEFILE=${APPNAME}docker-compose.yml
+  cd $HOME/.bashfiles/dockerImages/rails
+  sed -i '.original' -e "s~APPNAME~${APPNAME}~g" $COMPOSEFILE
+  rm -rf ${COMPOSEFILE}.original
+  docker-compose -f $COMPOSEFILE up -d
   docker attach $APPNAME
   cd $RAILSPATH
 }

@@ -1,0 +1,8 @@
+FROM ruby
+
+ENV APP_PATH /usr/src/app
+WORKDIR $APP_PATH
+
+EXPOSE 3000
+
+ENTRYPOINT $APP_PATH/run.sh
