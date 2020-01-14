@@ -1,4 +1,5 @@
-FROM ruby
+ARG APP_IMAGE=ruby:latest
+FROM $APP_IMAGE
 
 ENV APP_PATH /usr/src/app
 WORKDIR $APP_PATH

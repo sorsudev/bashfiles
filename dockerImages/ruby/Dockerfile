@@ -1,19 +1,20 @@
 FROM ubuntu:18.04
 
 ENV NVM_DIR /usr/local/nvm
-ENV NODE_VERSION 10.16.3
+ARG NODE_VERSION=12.14.1
+ARG NVM_VERSION=0.35.2
+ARG BUNDLE_VERSION=1.17.3
+ARG RUBY_VERSION=2.4.4
 ENV NVM_INSTALL_PATH $NVM_DIR/versions/node/v$NODE_VERSION
 ENV NODE_PATH $NVM_INSTALL_PATH/lib/node_modules
 ENV DEBIAN_FRONTEND=noninteractive
 ENV RBENV_ROOT /usr/local/rbenv
-ENV BUNDLE_VERSION 1.17.3
-ENV RUBY_VERSION 2.4.4
 ENV PATH ${RBENV_ROOT}/shims:${RBENV_ROOT}/bin:$NVM_INSTALL_PATH/bin:$PATH
 
 RUN apt-get update && apt-get install -y apache2 curl wget git-core curl zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev software-properties-common libffi-dev imagemagick apt-utils apt-transport-https ca-certificates postgresql postgresql-contrib libpq-dev libjemalloc-dev vim grc
 
 RUN mkdir -p $NVM_DIR
-RUN curl --silent -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
+RUN curl --silent -o- https://raw.githubusercontent.com/nvm-sh/nvm/v$NVM_VERSION/install.sh | bash
 
 RUN echo "source $NVM_DIR/nvm.sh && \
     nvm alias default $NODE_VERSION && \
@@ -36,8 +37,6 @@ RUN echo 'eval "$(rbenv init -)"' >> /etc/profile.d/rbenv.sh
 RUN echo 'eval "$(rbenv init -)"' >> ~/.bashrc
 RUN echo 'gem: --no-rdoc --no-ri' >> ~/.gemrc
 
-ARG REQUESTED_RUBY_VERSION=$RUBY_VERSION
-
-RUN if test -n "$REQUESTED_RUBY_VERSION" -a ! -x ${RBENV_ROOT}/versions/$REQUESTED_RUBY_VERSION/bin/ruby; then (cd ${RBENV_ROOT}/plugins/ruby-build  && git pull && RUBY_CONFIGURE_OPTS=--with-jemalloc rbenv install -s $REQUESTED_RUBY_VERSION) && rbenv global $REQUESTED_RUBY_VERSION && apt-get clean && rm -f /var/lib/apt/lists/*_*; fi
+RUN if test -n "$RUBY_VERSION" -a ! -x ${RBENV_ROOT}/versions/$RUBY_VERSION/bin/ruby; then (cd ${RBENV_ROOT}/plugins/ruby-build  && git pull && RUBY_CONFIGURE_OPTS=--with-jemalloc rbenv install -s $RUBY_VERSION) && rbenv global $RUBY_VERSION && apt-get clean && rm -f /var/lib/apt/lists/*_*; fi
 RUN gem install bundler -v $BUNDLE_VERSION
 RUN bundle config --global silence_root_warning 1

@@ -3,14 +3,20 @@ version: '3'
 services:
   redis:
     image: redis:alpine
+    container_name: redis_APPNAME
     ports:
       - "6379:6379"
   db:
     image: postgres:11.1-alpine
+    container_name: db_APPNAME
     volumes:
-      - ../tmp/db:/var/lib/postgresql/data
-  web:
+      - ../tmp/db_APPNAME:/var/lib/postgresql/data
+  web_APPNAME:
     build: .
+    environment:
+      - APP_IMAGE=ruby:latest
+      - APP_NAME=APPNAME
+      - RAILS_VERSION=5.2.4
     container_name: APPNAME
     volumes:
       - RAILSPATH:/usr/src/app

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 gtpj() {
     cd $(ls -d $HOME/projects/* | grep "$1")
 }
@@ -19,7 +21,7 @@ cpj(){
 sapp(){
     if [ -z "$1" ]
     then
-        echo "Se require nombre de projecto"
+        echo "Se require nombre de proyecto"
     else
         gtpj "$1"
         if [ -f app.js ]; then
@@ -45,8 +47,62 @@ clearDocker(){
 }
 
 compileImage(){
-  docker build --rm --tag $(basename `pwd`) .
+  USED_ENV_VARIABLES=( RUBY_VERSION BUNDLE_VERSION )
+  CMD='docker build '
+  for ENV_VAR in "${USED_ENV_VARIABLES[@]}"
+  do
+    if [ "${!ENV_VAR+x}" ]
+    then
+      CMD="${CMD} --build-arg ${ENV_VAR}=\${$ENV_VAR} "
+    fi
+  done
+  if [ -n "$TAG_NAME" ]
+  then
+    CMD="${CMD} --rm --tag $(basename `pwd`):${TAG_NAME} ."
+  else
+    CMD="${CMD} --rm --tag $(basename `pwd`) ."
+  fi
+  eval $CMD
 }
+
+cRailsProject(){
+  if [ -z "$1" ]
+  then
+    echo "Se require nombre de proyecto"
+  else
+    PROJECT_PATH=$PWD/"$1"
+    mkdir $PROJECT_PATH
+    cd $PROJECT_PATH
+    cp $HOME/.bashfiles/dockerImages/rails/run.sh ./
+    sudo chmod +x run.sh
+    cd $HOME/.bashfiles/dockerImages/ruby
+    compileImage
+    initRailsProject
+    cd $PROJECT_PATH
+    runRailsProject
+  fi
+}
+
+initRailsProject(){
+  if [ -n "$PROJECT_PATH" ]; then RAILS_PATH=$PROJECT_PATH; else RAILS_PATH=$PWD ; fi
+  APP_NAME=$(basename $RAILS_PATH)
+  COMPOSE_FILE=${APP_NAME}docker-compose.yml
+  cd $HOME/.bashfiles/dockerImages/rails
+  cp docker-compose.example.yml $COMPOSE_FILE
+  sed -i '.original' -e "s~RAILSPATH~${RAILS_PATH}~g" $COMPOSE_FILE
+  sed -i '.original' -e "s~APPNAME~${APP_NAME}~g" $COMPOSE_FILE
+  if [ -n "$TAG_NAME" ]
+  then
+    sed -i '.original' -e "s~ruby:latest~ruby:${TAG_NAME}~g" $COMPOSE_FILE
+  fi
+  if [ -n "$RAILS_VERSION" ]
+  then
+    sed -i '.original' -e "s~RAILS_VERSION=5.2.4~ruby:RAILS_VERSION=${RAILS_VERSION}~g" $COMPOSE_FILE
+  fi
+  rm -rf ${COMPOSE_FILE}.original
+  docker-compose -f $COMPOSE_FILE build
+}
+
 
 compileGcloudImage(){
   tagName=gcr.io/${PROJECTID}/$(basename `pwd`)
@@ -62,28 +118,14 @@ deployProduction(){
   gcloud app deploy app_production.yaml
 }
 
-initRailsProject(){
-  RAILSPATH=$PWD
-  APPNAME=$(basename $RAILSPATH)
-  COMPOSEFILE=${APPNAME}docker-compose.yml
-  cd $HOME/.bashfiles/dockerImages/rails
-  cp docker-compose.example.yml $COMPOSEFILE
-  sed -i '.original' -e "s~RAILSPATH~${RAILSPATH}~g" $COMPOSEFILE
-  rm -rf ${COMPOSEFILE}.original
-  docker-compose -f $COMPOSEFILE build
-  cd $RAILSPATH
-}
-
 runRailsProject(){
-  RAILSPATH=$PWD
-  APPNAME=$(basename $RAILSPATH)
-  COMPOSEFILE=${APPNAME}docker-compose.yml
+  RAILS_PATH=$PWD
+  APP_NAME=$(basename $RAILS_PATH)
+  COMPOSE_FILE=${APP_NAME}docker-compose.yml
   cd $HOME/.bashfiles/dockerImages/rails
-  sed -i '.original' -e "s~APPNAME~${APPNAME}~g" $COMPOSEFILE
-  rm -rf ${COMPOSEFILE}.original
-  docker-compose -f $COMPOSEFILE up -d
-  docker attach $APPNAME
-  cd $RAILSPATH
+  docker-compose -f $COMPOSE_FILE up -d
+  docker attach $APP_NAME
+  cd $RAILS_PATH
 }
 
 runRailsC(){
@@ -99,4 +141,14 @@ runRailsC(){
 runRake(){
   APPNAME=$(basename `pwd`)
   docker exec -it $APPNAME bundle exec rake "$1"
+}
+
+createMigration(){
+  APPNAME=$(basename `pwd`)
+  docker exec -it $APPNAME bundle exec ./bin/rails g migration "$1"
+}
+
+runPsql(){
+  APPNAME=$(basename `pwd`)
+  docker exec -it db_$APPNAME psql -U postgres
 }
