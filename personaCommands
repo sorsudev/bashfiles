@@ -47,7 +47,8 @@ clearDocker(){
 }
 
 compileImage(){
-  USED_ENV_VARIABLES=( RUBY_VERSION BUNDLE_VERSION )
+  cleanDocker
+  USED_ENV_VARIABLES=( RUBY_VERSION BUNDLE_VERSION PHP_VERSION )
   CMD='docker build '
   for ENV_VAR in "${USED_ENV_VARIABLES[@]}"
   do
@@ -63,6 +64,68 @@ compileImage(){
     CMD="${CMD} --rm --tag $(basename `pwd`) ."
   fi
   eval $CMD
+}
+
+cPhpProject(){
+  if [ -z "$1" ]
+  then
+    echo "Se require nombre de proyecto"
+  else
+    PROJECT_PATH=$PWD/"$1"
+    mkdir $PROJECT_PATH
+    initPhpProject
+    cd $PROJECT_PATH
+  fi
+}
+
+version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
+
+initPhpProject(){
+  cleanDocker
+  if [ -n "$PROJECT_PATH" ]; then PHP_PATH=$PROJECT_PATH; else PHP_PATH=$PWD ; fi
+  if [ -n "$PHP_VERSION" ]; then VERSION=$PHP_VERSION; else VERSION='7.4.1' ; fi
+  APP_NAME=$(basename $PHP_PATH)
+  COMPOSE_FILE=${APP_NAME}docker-compose.yml
+  cd $HOME/.bashfiles/dockerImages/php
+  cp docker-compose.example.yml $COMPOSE_FILE
+  USED_ENV_VARIABLES=( ROOT_PASSWORD FIRST_DB FIRST_USERNAME USER_PASSWORD )
+  for ENV_VAR in "${USED_ENV_VARIABLES[@]}"
+  do
+    if [ "${!ENV_VAR+x}" ]
+    then
+      sed -i '.original' -e "s~${ENV_VAR}~${!ENV_VAR}~g" $COMPOSE_FILE
+    fi
+  done
+  sed -i '.original' -e "s~APPNAME~${APP_NAME}~g" $COMPOSE_FILE
+  sed -i '.original' -e "s~PROJECTPATH~${PHP_PATH}~g" $COMPOSE_FILE
+  if version_gt 7.2 $VERSION; then
+    sed -i '.original' -e "s~PHP72_CONFIGURE=.*~PHP72_CONFIGURE=~g" $COMPOSE_FILE
+    sed -i '.original' -e "s~XDEBUG_VERSION=.*~XDEBUG_VERSION=2.5.5~g" $COMPOSE_FILE
+  fi
+  USED_ARGS_VARS=( PHP_VERSION PHP_SHA256 GPG_KEY1 GPG_KEY2 )
+  for ARG_VAR in "${USED_ARGS_VARS[@]}"
+  do
+    if [ "${!ARG_VAR+x}" ]
+    then
+      sed -i '.original' -e "s~${ARG_VAR}=.*~${ARG_VAR}=${!ARG_VAR}~g" $COMPOSE_FILE
+    fi
+  done
+  rm -rf ${COMPOSE_FILE}.original
+  docker-compose -f $COMPOSE_FILE build
+}
+
+runPhpProject(){
+  PROJECT_PATH=$PWD
+  APP_NAME=$(basename $PROJECT_PATH)
+  COMPOSE_FILE=${APP_NAME}docker-compose.yml
+  cd $HOME/.bashfiles/dockerImages/php
+  docker-compose -f $COMPOSE_FILE up
+  docker attach $APP_NAME
+  cd $PROJECT_PATH
+}
+
+cleanDocker(){
+  docker rmi $(docker images | grep "^<none>" | awk "{print $3}") --force
 }
 
 cRailsProject(){
@@ -146,6 +209,11 @@ runRake(){
 createMigration(){
   APPNAME=$(basename `pwd`)
   docker exec -it $APPNAME bundle exec ./bin/rails g migration "$1"
+}
+
+createDashboard(){
+  APPNAME=$(basename `pwd`)
+  docker exec -it $APPNAME bundle exec ./bin/rails g administrate:dashboard "$1"
 }
 
 runPsql(){

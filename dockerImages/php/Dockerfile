@@ -1,5 +1,12 @@
 FROM ubuntu:18.04
 
+ARG PHP_VERSION=7.3.13
+ARG PHP_SHA256=561bb866bdd509094be00f4ece7c3543ec971c4d878645ee81437e291cffc762
+ARG GPG_KEY1=CBAF69F173A0FEA4B537F470D66C9593118BCCB6
+ARG GPG_KEY2=F38252826ACD957EF380D39F2F7956BC5DA04B5D
+ARG PHP72_CONFIGURE='--with-password-argon2 --with-sodium=shared --with-openssl --with-pear'
+ARG XDEBUG_VERSION=2.9.1
+
 ENV DEBIAN_FRONTEND=noninteractive
 RUN set -eux; \
 { \
@@ -23,6 +30,7 @@ ENV PHPIZE_DEPS \
 RUN set -eux; \
   apt-get update; \
   apt-get install -y --no-install-recommends \
+  libonig-dev \
   $PHPIZE_DEPS \
   ca-certificates \
   curl \
@@ -90,11 +98,9 @@ ENV PHP_CFLAGS="-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_
 ENV PHP_CPPFLAGS="$PHP_CFLAGS"
 ENV PHP_LDFLAGS="-Wl,-O1 -Wl,--hash-style=both -pie"
 
-ENV GPG_KEYS CBAF69F173A0FEA4B537F470D66C9593118BCCB6 F38252826ACD957EF380D39F2F7956BC5DA04B5D
+ENV GPG_KEYS="${GPG_KEY1} ${GPG_KEY2}"
 
-ENV PHP_VERSION 7.3.11
-ENV PHP_URL="https://www.php.net/get/php-7.3.11.tar.xz/from/this/mirror" PHP_ASC_URL="https://www.php.net/get/php-7.3.11.tar.xz.asc/from/this/mirror"
-ENV PHP_SHA256="657cf6464bac28e9490c59c07a2cf7bb76c200f09cfadf6e44ea64e95fa01021" PHP_MD5=""
+ENV PHP_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.xz/from/this/mirror" PHP_ASC_URL="https://www.php.net/get/php-${PHP_VERSION}.tar.xz.asc/from/this/mirror"
 
 RUN mkdir ~/.gnupg && echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf
 
@@ -112,9 +118,6 @@ RUN set -eux; \
   \
   if [ -n "$PHP_SHA256" ]; then \
   echo "$PHP_SHA256 *php.tar.xz" | sha256sum -c -; \
-  fi; \
-  if [ -n "$PHP_MD5" ]; then \
-  echo "$PHP_MD5 *php.tar.xz" | md5sum -c -; \
   fi; \
   \
   if [ -n "$PHP_ASC_URL" ]; then \
@@ -171,7 +174,7 @@ RUN set -eux; \
   gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)"; \
   debMultiarch="$(dpkg-architecture --query DEB_BUILD_MULTIARCH)"; \
   if [ ! -d /usr/include/curl ]; then \
-  ln -sT "/usr/include/$debMultiarch/curl" /usr/local/include/curl; \
+    ln -sT "/usr/include/$debMultiarch/curl" /usr/local/include/curl; \
   fi; \
   ./configure \
   --build="$gnuArch" \
@@ -185,19 +188,17 @@ RUN set -eux; \
   --enable-ftp \
   --enable-mbstring \
   --enable-mysqlnd \
-  --with-password-argon2 \
-  --with-sodium=shared \
   --with-pdo-sqlite=/usr \
   --with-sqlite3=/usr \
   \
   --with-curl \
   --with-libedit \
-  --with-openssl \
   --with-zlib \
   \
   $(test "$gnuArch" = 's390x-linux-gnu' && echo '--without-pcre-jit') \
   --with-libdir="lib/$debMultiarch" \
   \
+  ${PHP72_CONFIGURE:-} \
   ${PHP_EXTRA_CONFIGURE_ARGS:-} \
   ; \
   make -j "$(nproc)"; \
@@ -221,16 +222,11 @@ RUN set -eux; \
   | sort -u \
   | xargs -r apt-mark manual \
   ; \
-  apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
-  \
-
-  pecl update-channels; \
-    rm -rf /tmp/pear ~/.pearrc; \
-    php --version
+  apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
 
 COPY docker-php-ext-* /usr/local/bin/
 
-RUN docker-php-ext-enable sodium
+RUN if [ -n "$PHP72_CONFIGURE" ]; then docker-php-ext-enable sodium; fi
 
 RUN set -eux; \
       \
@@ -284,7 +280,7 @@ RUN { \
   echo 'opcache.fast_shutdown=1'; \
   } > /usr/local/etc/php/conf.d/opcache-recommended.ini
 
-RUN pecl install xdebug
+RUN pecl install xdebug-${XDEBUG_VERSION}
 RUN docker-php-ext-enable xdebug
 RUN echo "error_reporting = E_ALL" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 RUN echo "display_startup_errors = On" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
@@ -300,8 +296,6 @@ WORKDIR /var/www/html
 
 COPY httpd.conf /etc/apache2/httpd.conf
 COPY www.conf /usr/local/etc/php-fpm.d/www.conf
-COPY run.sh /run.sh
 COPY index.php /var/www/localhost/htdocs
-RUN chmod -R 755 /run.sh
 
 EXPOSE 80

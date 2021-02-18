@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  redis:
+    image: redis:alpine
+    container_name: redis_APPNAME
+    ports:
+      - "6379:6379"
+  db:
+    image: yobasystems/alpine-mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: ROOT_PASSWORD
+      MYSQL_DATABASE: FIRST_DB
+      MYSQL_USER: FIRST_USERNAME
+      MYSQL_PASSWORD: USER_PASSWORD
+    expose:
+      - "3306"
+    volumes:
+      - ../tmp/db_APPNAME:/var/lib/postgresql/data
+    restart: always
+  web_APPNAME:
+    build:
+      context: .
+      args:
+        - PHP_VERSION=7.3.13
+        - PHP_SHA256=57ac55fe442d2da650abeb9e6fa161bd3a98ba6528c029f076f8bba43dd5c228
+        - GPG_KEY1=CBAF69F173A0FEA4B537F470D66C9593118BCCB6
+        - GPG_KEY2=F38252826ACD957EF380D39F2F7956BC5DA04B5D
+        - PHP72_CONFIGURE=--with-password-argon2 --with-sodium=shared --with-openssl  --with-pear
+        - XDEBUG_VERSION=2.9.1
+    container_name: APPNAME
+    volumes:
+      - PROJECTPATH:/var/www/html
+    ports:
+      - "3000:80"
+    depends_on:
+      - db
+      - redis
+    tty: true
+    stdin_open: true
