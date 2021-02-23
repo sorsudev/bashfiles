@@ -1,17 +1,17 @@
 FROM ubuntu:18.04
 
 ENV NVM_DIR /usr/local/nvm
-ARG NODE_VERSION=12.14.1
-ARG NVM_VERSION=0.35.2
-ARG BUNDLE_VERSION=1.17.3
-ARG RUBY_VERSION=2.4.4
+ARG NODE_VERSION=14.15.5
+ARG NVM_VERSION=0.37.2
+ARG BUNDLE_VERSION=2.2.11
+ARG RUBY_VERSION=2.6.6
 ENV NVM_INSTALL_PATH $NVM_DIR/versions/node/v$NODE_VERSION
 ENV NODE_PATH $NVM_INSTALL_PATH/lib/node_modules
 ENV DEBIAN_FRONTEND=noninteractive
 ENV RBENV_ROOT /usr/local/rbenv
 ENV PATH ${RBENV_ROOT}/shims:${RBENV_ROOT}/bin:$NVM_INSTALL_PATH/bin:$PATH
 
-RUN apt-get update && apt-get install -y apache2 curl wget git-core curl zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev software-properties-common libffi-dev imagemagick apt-utils apt-transport-https ca-certificates postgresql postgresql-contrib libpq-dev libjemalloc-dev vim grc
+RUN apt-get update && apt-get install -y apache2 curl wget git-core curl zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev software-properties-common libffi-dev imagemagick apt-utils apt-transport-https ca-certificates postgresql postgresql-contrib libpq-dev libjemalloc-dev vim grc mongodb
 
 RUN mkdir -p $NVM_DIR
 RUN curl --silent -o- https://raw.githubusercontent.com/nvm-sh/nvm/v$NVM_VERSION/install.sh | bash
